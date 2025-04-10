@@ -152,11 +152,11 @@ class SecureClient:
             # Log message receipt
             if msg_type == "message":
                 sender = message.get("sender", "Unknown")
-                self.logger.info(f"Message received from {sender}")
+                self.logger.debug(f"Message received from {sender}")
             elif msg_type == "system":
-                self.logger.info(f"System message received: {message.get('content', '')[:30]}...")
+                self.logger.debug(f"System message received: {message.get('content', '')[:30]}...")
             elif msg_type == "online_users":
-                self.logger.info(f"Online users list updated: {len(message.get('users', []))} users")
+                self.logger.debug(f"Online users list updated: {len(message.get('users', []))} users")
                 
         except Exception as e:
             self.logger.error(f"Error processing message: {e}")

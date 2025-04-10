@@ -13,7 +13,7 @@ class Config:
         self.port = 9999
         self.use_tor = False
         self.debug = False
-        self.log_level = "INFO"
+        self.log_level = "ERROR"  # Changed from INFO to ERROR to reduce log output
         self.custom_username = None
         
         # Load from environment

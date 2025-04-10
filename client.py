@@ -59,13 +59,13 @@ def message_callback(message):
             # Already a list of usernames
             online_users = users_data
             
-        # Show notification with user count
-        ui.print_colored(f"\n[i] Online users updated: {len(online_users)} user(s) connected", Colors.BLUE)
-        
-        # Display the list of users
+        # Only show a compact notification in the chat
         if online_users:
-            user_list = ", ".join(online_users)
-            ui.print_colored(f"    Users: {user_list}", Colors.BLUE)
+            user_count = len(online_users)
+            if user_count == 1:
+                ui.add_message(f"[SYSTEM] You are the only user online", "system")
+            else:
+                ui.add_message(f"[SYSTEM] {user_count} users online: {', '.join(online_users)}", "system")
 
 def main():
     global ui, online_users

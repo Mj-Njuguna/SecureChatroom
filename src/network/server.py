@@ -45,7 +45,7 @@ class SecureServer:
             self.server_socket.listen(5)
             
             self.active = True
-            self.logger.info(f"Secure server running on {self.host}:{self.port}")
+            self.logger.debug(f"Secure server running on {self.host}:{self.port}")
             
             # Start periodic tasks
             threading.Thread(target=self._periodic_tasks, daemon=True).start()
@@ -104,7 +104,7 @@ class SecureServer:
             
             # Add client to list
             self.clients.append(client)
-            self.logger.info(f"Client connected: {username} from {addr}")
+            self.logger.debug(f"Client connected: {username} from {addr}")
             
             # Notify all clients about new user
             self._broadcast_system_message(f"{username} has joined the chat")
@@ -159,7 +159,7 @@ class SecureServer:
             # Remove client from list
             if client:
                 self.clients = [c for c in self.clients if c.conn != conn]
-                self.logger.info(f"Client disconnected: {client.username}")
+                self.logger.debug(f"Client disconnected: {client.username}")
                 
                 # Notify remaining clients
                 self._broadcast_system_message(f"{client.username} has left the chat")
@@ -170,7 +170,7 @@ class SecureServer:
     def _broadcast_message(self, content, sender):
         """Broadcast message to all clients except sender"""
         # Add debug logging
-        self.logger.info(f"Broadcasting message from {sender.username}: {content}")
+        self.logger.debug(f"Broadcasting message from {sender.username}: {content}")
         
         formatted_content = f"{sender.username}: {content}"
         message_id = str(time.time())
@@ -208,11 +208,11 @@ class SecureServer:
                 except Exception as e:
                     self.logger.error(f"Error broadcasting to {client.username}: {e}")
         
-        # Log delivery statistics
+        # Log delivery statistics at DEBUG level
         if total_recipients > 0:
-            self.logger.info(f"Message delivery: {successful_deliveries}/{total_recipients} recipients ({successful_deliveries/total_recipients*100:.1f}%)")
+            self.logger.debug(f"Message delivery: {successful_deliveries}/{total_recipients} recipients ({successful_deliveries/total_recipients*100:.1f}%)")
         else:
-            self.logger.info("No other clients to deliver message to")
+            self.logger.debug("No other clients to deliver message to")
     
     def _broadcast_system_message(self, content):
         """Send a system message to all clients"""
@@ -290,7 +290,7 @@ class SecureServer:
         
         for client in inactive_clients:
             try:
-                self.logger.info(f"Disconnecting inactive client: {client.username}")
+                self.logger.debug(f"Disconnecting inactive client: {client.username}")
                 client.conn.close()
             except:
                 pass
@@ -304,7 +304,7 @@ class SecureServer:
     def shutdown(self):
         """Gracefully shut down the server"""
         self.active = False
-        self.logger.info("Shutting down server...")
+        self.logger.debug("Shutting down server...")
         
         # Notify all clients
         self._broadcast_system_message("Server is shutting down")
@@ -326,4 +326,4 @@ class SecureServer:
             except:
                 pass
         
-        self.logger.info("Server shutdown complete")
+        self.logger.debug("Server shutdown complete")
