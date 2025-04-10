@@ -12,7 +12,7 @@ import argparse
 from datetime import datetime
 
 from src.network.client import SecureClient
-from src.ui.gui import ChatroomGUI
+from src.ui.gui import ChatroomGUI, Colors
 from src.utils.config import Config
 from src.utils.anonymity import AnonymityUtils
 from src.ui.commands import CommandHandler
@@ -59,13 +59,8 @@ def message_callback(message):
             # Already a list of usernames
             online_users = users_data
             
-        # Only show a compact notification in the chat
-        if online_users:
-            user_count = len(online_users)
-            if user_count == 1:
-                gui.add_message(f"[SYSTEM] You are the only user online", "system")
-            else:
-                gui.add_message(f"[SYSTEM] {user_count} users online: {', '.join(online_users)}", "system")
+        # Update the GUI with online users
+        gui.add_message(f"[SYSTEM] {len(online_users)} users online: {', '.join(online_users)}", "system")
 
 def handle_command(command):
     """Handle commands from the GUI"""
@@ -181,12 +176,20 @@ def main():
                 print("[x] Failed to start TOR. Continuing without it.")
                 config.use_tor = False
     
+    # Initialize GUI
+    gui = ChatroomGUI(username, send_message, handle_command, quit_application)
+    
     # Connect to server
     print(f"[*] Connecting to {config.host}:{config.port}...")
     client = SecureClient(config.host, config.port, username, config.use_tor)
     
+    # Update connection status in GUI
+    gui.update_status("Connecting to secure server...")
+    
     if not client.connect():
         print("[x] Failed to connect to server")
+        gui.update_status("Failed to connect to server")
+        gui.connection_label.config(text="Disconnected", foreground=Colors.ERROR)
         return 1
     
     # Register message callback
@@ -195,11 +198,12 @@ def main():
     # Store online users in client for command access
     client.online_users = online_users
     
-    # Initialize GUI
-    gui = ChatroomGUI(username, send_message, handle_command, quit_application)
+    # Update status - hide actual server IP for security
+    gui.update_status("Connected to secure server")
+    gui.connection_label.config(text="Connected to secure server", foreground=Colors.SELF)
     
-    # Update status
-    gui.update_status(f"Connected to {config.host}:{config.port}")
+    # Add welcome message
+    gui.add_message("[SYSTEM] Connected to secure chat server. Your messages are end-to-end encrypted.", "system")
     
     # Start GUI main loop
     gui.start()

@@ -17,6 +17,7 @@ class Colors:
     OTHER = "#89DCEB"     # Color for messages from others
     SYSTEM = "#F9E2AF"    # Color for system messages
     ERROR = "#F38BA8"     # Color for errors
+    BORDER = "#6C7086"    # Border color
 
 class ChatroomGUI:
     def __init__(self, username, send_callback, command_callback, quit_callback):
@@ -27,7 +28,11 @@ class ChatroomGUI:
         self.quit_callback = quit_callback
         self.message_history = []
         self.max_history = 100
+        self.online_users = []
+        self.refresh_timer = None
         self.setup_ui()
+        # Start the auto-refresh timer
+        self._start_refresh_timer()
         
     def setup_ui(self):
         """Set up the main UI components"""
@@ -43,70 +48,105 @@ class ChatroomGUI:
         self.style.configure("TLabel", background=Colors.BG_DARK, foreground=Colors.TEXT)
         self.style.configure("TButton", background=Colors.BG_LIGHT, foreground=Colors.TEXT)
         
-        # Set up the main frame
-        self.main_frame = ttk.Frame(self.root)
+        # Set up the main frame with a border
+        self.main_frame = ttk.Frame(self.root, padding=5)
         self.main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # Header with connection info
+        # Header with connection info and a decorative border
         self.header_frame = ttk.Frame(self.main_frame)
         self.header_frame.pack(fill=tk.X, pady=(0, 10))
         
-        self.title_label = ttk.Label(
-            self.header_frame, 
-            text="SECURE CHATROOM", 
-            font=("Arial", 16, "bold"),
+        self.connection_label = ttk.Label(
+            self.header_frame,
+            text="Not connected",
+            font=("Arial", 10),
+            foreground=Colors.TEXT
+        )
+        self.connection_label.pack(side=tk.LEFT)
+        
+        # Add online users display in header
+        self.online_users_label = ttk.Label(
+            self.header_frame,
+            text="No other users online",
+            font=("Arial", 10),
             foreground=Colors.ACCENT
         )
-        self.title_label.pack(side=tk.LEFT)
+        self.online_users_label.pack(side=tk.LEFT, padx=(20, 0))
         
         self.username_label = ttk.Label(
             self.header_frame,
-            text=f"Connected as: {self.username}",
-            font=("Arial", 10),
+            text=f"You: {self.username}",
+            font=("Arial", 10, "bold"),
             foreground=Colors.SELF
         )
         self.username_label.pack(side=tk.RIGHT)
         
-        # Chat display area
-        self.chat_frame = ttk.Frame(self.main_frame)
+        # Add a separator below the header
+        header_separator = ttk.Separator(self.main_frame, orient='horizontal')
+        header_separator.pack(fill=tk.X, pady=(0, 10))
+        
+        # Chat display area with improved styling
+        self.chat_frame = ttk.Frame(self.main_frame, padding=5)
         self.chat_frame.pack(fill=tk.BOTH, expand=True)
         
         self.chat_display = scrolledtext.ScrolledText(
             self.chat_frame,
             wrap=tk.WORD,
-            bg=Colors.BG_LIGHT,
-            fg=Colors.TEXT,
             font=("Consolas", 10),
+            bg=Colors.BG_DARK,
+            fg=Colors.TEXT,
+            insertbackground=Colors.TEXT,
+            selectbackground=Colors.ACCENT,
+            relief=tk.SUNKEN,
             padx=10,
-            pady=10
+            pady=10,
+            borderwidth=1
         )
         self.chat_display.pack(fill=tk.BOTH, expand=True)
-        self.chat_display.config(state=tk.DISABLED)
+        self.chat_display.config(state=tk.DISABLED)  # Read-only
         
-        # Input area
+        # Add a separator above the input area
+        input_separator = ttk.Separator(self.main_frame, orient='horizontal')
+        input_separator.pack(fill=tk.X, pady=10)
+        
+        # Input area with improved styling
         self.input_frame = ttk.Frame(self.main_frame)
-        self.input_frame.pack(fill=tk.X, pady=(10, 0))
+        self.input_frame.pack(fill=tk.X, pady=(0, 10))
         
         self.message_input = tk.Text(
             self.input_frame,
             height=3,
+            font=("Consolas", 10),
             bg=Colors.BG_LIGHT,
             fg=Colors.TEXT,
-            font=("Consolas", 10),
+            insertbackground=Colors.TEXT,
+            relief=tk.SUNKEN,
             padx=10,
-            pady=10,
+            pady=5,
+            borderwidth=1,
             wrap=tk.WORD
         )
         self.message_input.pack(side=tk.LEFT, fill=tk.X, expand=True)
         self.message_input.bind("<Return>", self.on_enter)
         self.message_input.bind("<Shift-Return>", lambda e: None)  # Allow Shift+Enter for newline
         
+        # Send button with improved styling
         self.send_button = ttk.Button(
             self.input_frame,
             text="Send",
-            command=self.send_message
+            command=self.send_message,
+            style="Send.TButton"
         )
         self.send_button.pack(side=tk.RIGHT, padx=(10, 0))
+        
+        # Create a custom style for the send button
+        self.style.configure(
+            "Send.TButton", 
+            background=Colors.ACCENT,
+            foreground=Colors.BG_DARK,
+            font=("Arial", 10, "bold"),
+            padding=5
+        )
         
         # Status bar
         self.status_frame = ttk.Frame(self.main_frame)
@@ -159,6 +199,22 @@ class ChatroomGUI:
     
     def add_message(self, text, msg_type="other"):
         """Add a message to the chat display"""
+        # Handle online users updates differently
+        if msg_type == "system" and "users online:" in text:
+            # Extract users from the message
+            try:
+                users_part = text.split("users online:", 1)[1].strip()
+                users = [u.strip() for u in users_part.split(",")]
+                self.update_online_users(users)
+                return None  # Don't add this message to chat
+            except:
+                pass  # If parsing fails, treat as normal message
+                
+        # Handle "You are the only user online" message
+        if msg_type == "system" and "You are the only user online" in text:
+            self.update_online_users([self.username])
+            return None  # Don't add this message to chat
+            
         # Create message object
         timestamp = datetime.now().strftime("%H:%M:%S")
         msg = {
@@ -176,51 +232,93 @@ class ChatroomGUI:
         if len(self.message_history) > self.max_history:
             self.message_history = self.message_history[-self.max_history:]
         
-        # Start expiration thread for non-self messages
-        if msg_type != "self" and msg_type != "system" and msg_type != "error":
-            threading.Thread(target=self._expire_message, args=(msg["id"],), daemon=True).start()
-        
         # Update display
         self.update_chat_display()
         
         return msg["id"]
+        
+    def update_online_users(self, users):
+        """Update the online users display in the header"""
+        self.online_users = users
+        
+        # Update the online users label
+        if len(users) <= 1:
+            self.online_users_label.config(text="No other users online", foreground=Colors.ERROR)
+        else:
+            user_count = len(users)
+            # Filter out current user from the display
+            other_users = [u for u in users if u != self.username]
+            self.online_users_label.config(
+                text=f"{user_count} users online: {', '.join(other_users)}",
+                foreground=Colors.ACCENT
+            )
     
-    def _expire_message(self, msg_id):
-        """Mark message as expired after timeout"""
-        time.sleep(10)  # 10-second expiration
+    def _start_refresh_timer(self):
+        """Start a timer to periodically refresh the chat display"""
+        # Refresh every 5 seconds to check for expired messages
+        self.refresh_timer = threading.Timer(5.0, self._refresh_callback)
+        self.refresh_timer.daemon = True
+        self.refresh_timer.start()
         
-        # Find message and mark as expired
+    def _refresh_callback(self):
+        """Callback for the refresh timer"""
+        # Check for expired messages and update the display
+        current_time = time.time() * 1000
+        updated = False
+        
         for i, msg in enumerate(self.message_history):
-            if msg.get("id") == msg_id:
-                self.message_history[i]["expired"] = True
-                break
+            # Check if message should be expired (30 seconds)
+            if not msg.get("expired", False) and msg.get("type") not in ["system", "error"]:
+                msg_time = msg.get("id", 0)  # Message ID is timestamp
+                if current_time - msg_time > 30000:  # 30 seconds in milliseconds
+                    self.message_history[i]["expired"] = True
+                    updated = True
         
-        # Update display
-        self.update_chat_display()
+        # Update display if needed
+        if updated:
+            self.update_chat_display()
+            
+        # Restart the timer
+        self._start_refresh_timer()
     
     def update_chat_display(self):
         """Update the chat display with all messages"""
+        # Enable editing temporarily
         self.chat_display.config(state=tk.NORMAL)
+        
+        # Clear current content
         self.chat_display.delete("1.0", tk.END)
         
+        # Add all messages
         for msg in self.message_history:
-            if msg["expired"]:
-                self.chat_display.insert(tk.END, f"[Message Expired] {msg['text'][:20]}...\n", "error")
-            else:
-                timestamp = f"[{msg['time']}] "
-                self.chat_display.insert(tk.END, timestamp, "timestamp")
-                
-                if msg["type"] == "system":
-                    self.chat_display.insert(tk.END, f"{msg['text']}\n", "system")
-                elif msg["type"] == "self":
-                    self.chat_display.insert(tk.END, f"{msg['text']}\n", "self")
-                elif msg["type"] == "error":
-                    self.chat_display.insert(tk.END, f"{msg['text']}\n", "error")
-                else:
-                    self.chat_display.insert(tk.END, f"{msg['text']}\n", "other")
+            timestamp = msg.get("time", "")
+            text = msg.get("text", "")
+            msg_type = msg.get("type", "other")
+            expired = msg.get("expired", False)
+            
+            # Format expired messages
+            if expired and msg_type == "other":
+                # Only show first 15 characters of expired messages
+                text_parts = text.split(": ", 1)
+                if len(text_parts) > 1:
+                    sender = text_parts[0]
+                    content = text_parts[1]
+                    # Truncate content if longer than 15 chars
+                    if len(content) > 15:
+                        content = content[:15] + "..."
+                    text = f"{sender}: {content}"
+                text = f"[Message Expired] {text}"
+            
+            # Insert timestamp
+            self.chat_display.insert(tk.END, f"[{timestamp}] ", "timestamp")
+            
+            # Insert message with appropriate tag
+            self.chat_display.insert(tk.END, f"{text}\n", msg_type)
         
-        # Scroll to the bottom
+        # Scroll to bottom
         self.chat_display.see(tk.END)
+        
+        # Disable editing again
         self.chat_display.config(state=tk.DISABLED)
     
     def update_status(self, text):
@@ -242,7 +340,7 @@ class ChatroomGUI:
 Security Features:
 • End-to-End Encryption - All messages are encrypted with AES-GCM
 • Anonymous Usernames - Your identity is protected
-• Self-Destructing Messages - Messages expire after 10 seconds
+• Self-Destructing Messages - Messages expire after 30 seconds
 • Secure Logging - Optional encrypted message logging
 • TOR Integration - Optional routing through TOR network
 """
@@ -258,9 +356,16 @@ Security Features:
     
     def on_close(self):
         """Handle window close event"""
-        if messagebox.askokcancel("Quit", "Do you want to quit the SecureChatroom?"):
+        # Cancel the refresh timer
+        if self.refresh_timer:
+            self.refresh_timer.cancel()
+        
+        # Call the quit callback
+        if self.quit_callback:
             self.quit_callback()
-            self.root.destroy()
+        
+        # Close the window
+        self.root.destroy()
     
     def start(self):
         """Start the GUI main loop"""
