@@ -67,3 +67,5 @@
 2025-04-10 22:27:56,684 - secure_server - INFO - Client disconnected: Client1
 2025-04-10 22:27:59,017 - secure_server - ERROR - Error handling client ('127.0.0.1', 65293): [WinError 10054] An existing connection was forcibly closed by the remote host
 2025-04-10 22:27:59,018 - secure_server - INFO - Client disconnected: Client2
+2025-04-10 22:46:27,006 - secure_server - ERROR - Error handling client ('127.0.0.1', 50955): [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-04-10 22:46:27,835 - secure_server - ERROR - Error handling client ('127.0.0.1', 50975): [WinError 10054] An existing connection was forcibly closed by the remote host

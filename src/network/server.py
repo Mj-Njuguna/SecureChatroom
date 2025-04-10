@@ -172,7 +172,12 @@ class SecureServer:
         # Add debug logging
         self.logger.debug(f"Broadcasting message from {sender.username}: {content}")
         
-        formatted_content = f"{sender.username}: {content}"
+        # Don't add username prefix if content already has it
+        if content.startswith(f"{sender.username}: "):
+            formatted_content = content
+        else:
+            formatted_content = f"{sender.username}: {content}"
+            
         message_id = str(time.time())
         timestamp = time.time()
         
@@ -180,6 +185,10 @@ class SecureServer:
         successful_deliveries = 0
         total_recipients = len(self.clients) - 1
         
+        if total_recipients <= 0:
+            self.logger.debug("No other clients to deliver message to")
+            return
+            
         for client in self.clients:
             if client.conn != sender.conn:
                 try:
@@ -211,8 +220,6 @@ class SecureServer:
         # Log delivery statistics at DEBUG level
         if total_recipients > 0:
             self.logger.debug(f"Message delivery: {successful_deliveries}/{total_recipients} recipients ({successful_deliveries/total_recipients*100:.1f}%)")
-        else:
-            self.logger.debug("No other clients to deliver message to")
     
     def _broadcast_system_message(self, content):
         """Send a system message to all clients"""

@@ -139,8 +139,13 @@ class TerminalUI:
                     if msg["type"] == "system":
                         self.print_colored(f"{prefix}{msg['text']}", Colors.YELLOW)
                     elif msg["type"] == "self":
-                        self.print_colored(f"{prefix}You: {msg['text']}", Colors.GREEN)
+                        # Your own messages are already formatted with "You: " in client.py
+                        self.print_colored(f"{prefix}{msg['text']}", Colors.GREEN)
+                    elif msg["type"] == "other":
+                        # Messages from others should be in cyan
+                        self.print_colored(f"{prefix}{msg['text']}", Colors.CYAN)
                     else:
+                        # Fallback for any other message type
                         self.print_colored(f"{prefix}{msg['text']}", Colors.RESET)
             
             # Restore input prompt

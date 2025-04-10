@@ -36,9 +36,20 @@ def message_callback(message):
         # Display the message with timestamp if available
         if "timestamp" in message:
             timestamp = time.strftime("%H:%M:%S", time.localtime(message.get("timestamp")))
-            ui.add_message(f"[{timestamp}] {content}")
+            
+            # Check if content already has sender prefix (e.g., "Client1: Hello")
+            if ": " in content and not content.startswith("["):
+                # Content already has sender format, use it directly
+                ui.add_message(f"[{timestamp}] {content}", "other")
+            else:
+                # Add sender prefix if not present
+                ui.add_message(f"[{timestamp}] {sender}: {content}", "other")
         else:
-            ui.add_message(content)
+            # No timestamp available
+            if ": " in content and not content.startswith("["):
+                ui.add_message(content, "other")
+            else:
+                ui.add_message(f"{sender}: {content}", "other")
             
         # Flash the terminal or make a sound for notification
         print("\a", end="", flush=True)  # Terminal bell
@@ -139,12 +150,18 @@ def main():
                     continue
             
             # Send regular message
-            ui.add_message(user_input, "self")
-            client.send_message(user_input)
+            success, error_msg = client.send_message(user_input)
             
-            # Log message if enabled
-            if secure_logger.enabled:
-                secure_logger.log_message(f"You: {user_input}")
+            if success:
+                # Show message in your own terminal with "You:" prefix
+                ui.add_message(f"You: {user_input}", "self")
+                
+                # Log message if enabled
+                if secure_logger.enabled:
+                    secure_logger.log_message(f"You: {user_input}")
+            else:
+                # Show error message
+                ui.print_colored(f"\n[!] {error_msg}", Colors.RED)
                 
         except KeyboardInterrupt:
             ui.print_colored("\n[x] Interrupted by user", Colors.RED)
