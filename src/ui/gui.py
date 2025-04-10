@@ -30,6 +30,8 @@ class ChatroomGUI:
         self.max_history = 100
         self.online_users = []
         self.refresh_timer = None
+        self.last_activity_time = time.time()
+        self.inactivity_timeout = 300  # 5 minutes in seconds
         self.setup_ui()
         # Start the auto-refresh timer
         self._start_refresh_timer()
@@ -182,6 +184,9 @@ class ChatroomGUI:
     
     def send_message(self):
         """Send the message from the input field"""
+        # Update last activity time when sending a message
+        self.last_activity_time = time.time()
+        
         message = self.message_input.get("1.0", tk.END).strip()
         if not message:
             return
@@ -199,6 +204,9 @@ class ChatroomGUI:
     
     def add_message(self, text, msg_type="other"):
         """Add a message to the chat display"""
+        # Update last activity time when a message is added
+        self.last_activity_time = time.time()
+        
         # Handle online users updates differently
         if msg_type == "system" and "users online:" in text:
             # Extract users from the message
@@ -262,27 +270,36 @@ class ChatroomGUI:
         
     def _refresh_callback(self):
         """Callback for the refresh timer"""
-        # Check for expired messages and update the display
-        current_time = time.time() * 1000
-        updated = False
+        # Check for inactivity
+        current_time = time.time()
+        time_since_last_activity = current_time - self.last_activity_time
         
-        for i, msg in enumerate(self.message_history):
-            # Check if message should be expired (30 seconds)
-            if not msg.get("expired", False) and msg.get("type") not in ["system", "error"]:
-                msg_time = msg.get("id", 0)  # Message ID is timestamp
-                if current_time - msg_time > 30000:  # 30 seconds in milliseconds
+        # If inactive for 5 minutes, expire all messages
+        if time_since_last_activity >= self.inactivity_timeout:
+            updated = False
+            
+            for i, msg in enumerate(self.message_history):
+                # Only expire non-system messages that aren't already expired
+                if not msg.get("expired", False) and msg.get("type") not in ["system", "error"]:
                     self.message_history[i]["expired"] = True
                     updated = True
-        
-        # Update display if needed
-        if updated:
-            self.update_chat_display()
             
-        # Restart the timer
-        self._start_refresh_timer()
+            # Update display if needed
+            if updated:
+                self.update_chat_display()
+                # Reset activity timer after expiring messages
+                self.last_activity_time = current_time
+        
+        # Restart the timer (check every 30 seconds)
+        self.refresh_timer = threading.Timer(30.0, self._refresh_callback)
+        self.refresh_timer.daemon = True
+        self.refresh_timer.start()
     
     def update_chat_display(self):
         """Update the chat display with all messages"""
+        # Update last activity time when user views the chat
+        self.last_activity_time = time.time()
+        
         # Enable editing temporarily
         self.chat_display.config(state=tk.NORMAL)
         

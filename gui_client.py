@@ -28,6 +28,10 @@ def message_callback(message):
     """Callback for handling received messages"""
     global gui, online_users
     
+    # Update activity timestamp when receiving messages
+    if hasattr(gui, 'last_activity_time'):
+        gui.last_activity_time = time.time()
+    
     msg_type = message.get("type")
     
     if msg_type == "message":
@@ -204,6 +208,7 @@ def main():
     
     # Add welcome message
     gui.add_message("[SYSTEM] Connected to secure chat server. Your messages are end-to-end encrypted.", "system")
+    gui.add_message("[SYSTEM] Messages will be automatically expired after 5 minutes of inactivity.", "system")
     
     # Start GUI main loop
     gui.start()
