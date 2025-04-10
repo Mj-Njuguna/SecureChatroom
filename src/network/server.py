@@ -237,14 +237,10 @@ class SecureServer:
     def _broadcast_online_users(self):
         """Send the list of online users to all clients"""
         try:
-            # Create a list of online users
-            online_users = []
-            for client in self.clients:
-                online_users.append({
-                    "username": client.username,
-                    "join_time": client.join_time,
-                    "addr": str(client.addr[0])  # Only include IP, not port
-                })
+            # Create a list of online usernames (simple strings, not dictionaries)
+            online_users = [client.username for client in self.clients]
+            
+            self.logger.debug(f"Broadcasting online users: {online_users}")
             
             # Create online users message
             message = Protocol.create_online_users_message(online_users)

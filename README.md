@@ -25,7 +25,7 @@ A secure, anonymous, terminal-based chatroom using Python, RSA, and AES encrypti
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/SecureChatroom.git
+   git clone https://github.com/Mj-Njuguna/SecureChatroom.git
    cd SecureChatroom
    ```
 

@@ -1,0 +1,55 @@
+2025-04-10 22:16:38,717 - secure_server - INFO - Secure server running on 127.0.0.1:9999
+2025-04-10 22:16:54,847 - secure_server - INFO - Client connected: Client1 from ('127.0.0.1', 65015)
+2025-04-10 22:17:05,818 - secure_server - INFO - Client connected: Client2 from ('127.0.0.1', 65030)
+2025-04-10 22:17:14,906 - secure_client - INFO - System message received: [SYSTEM] Client1 has joined th...
+2025-04-10 22:17:14,907 - secure_client - ERROR - Error in message callback: sequence item 0: expected str instance, dict found
+2025-04-10 22:17:14,907 - secure_client - INFO - Online users list updated: 1 users
+2025-04-10 22:17:14,917 - secure_server - INFO - Broadcasting message from Client1: hello client 2
+2025-04-10 22:17:14,918 - secure_server - INFO - Message delivery: 1/1 recipients (100.0%)
+2025-04-10 22:17:14,926 - secure_client - INFO - System message received: [SYSTEM] Client2 has joined th...
+2025-04-10 22:17:14,927 - secure_client - ERROR - Error in message callback: sequence item 0: expected str instance, dict found
+2025-04-10 22:17:14,927 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:17:14,928 - secure_client - ERROR - Error in message callback: sequence item 0: expected str instance, dict found
+2025-04-10 22:17:14,928 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:17:34,043 - secure_client - INFO - System message received: [SYSTEM] Client2 has joined th...
+2025-04-10 22:17:34,044 - secure_client - ERROR - Error in message callback: sequence item 0: expected str instance, dict found
+2025-04-10 22:17:34,044 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:17:34,044 - secure_client - ERROR - Error in message callback: sequence item 0: expected str instance, dict found
+2025-04-10 22:17:34,045 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:17:34,054 - secure_server - INFO - Broadcasting message from Client2: hi client 1
+2025-04-10 22:17:34,055 - secure_server - INFO - Message delivery: 1/1 recipients (100.0%)
+2025-04-10 22:17:34,063 - secure_client - INFO - Message received from Client1
+2025-04-10 22:17:38,721 - secure_client - ERROR - Error in message callback: sequence item 0: expected str instance, dict found
+2025-04-10 22:17:38,721 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:18:08,726 - secure_client - ERROR - Error in message callback: sequence item 0: expected str instance, dict found
+2025-04-10 22:18:08,727 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:18:38,725 - secure_client - ERROR - Error in message callback: sequence item 0: expected str instance, dict found
+2025-04-10 22:18:38,726 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:18:54,844 - secure_client - WARNING - Connection error: [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-04-10 22:18:54,845 - secure_client - INFO - Reconnecting (attempt 1/3)...
+2025-04-10 22:19:01,875 - secure_client - ERROR - Connection failed: [WinError 10061] No connection could be made because the target machine actively refused it
+2025-04-10 22:19:01,876 - secure_client - INFO - Reconnecting (attempt 2/3)...
+2025-04-10 22:19:25,980 - secure_server - INFO - Secure server running on 127.0.0.1:9999
+2025-04-10 22:20:06,627 - secure_server - INFO - Secure server running on 127.0.0.1:9999
+2025-04-10 22:20:25,651 - secure_server - INFO - Client connected: Client1 from ('127.0.0.1', 65279)
+2025-04-10 22:20:36,929 - secure_server - INFO - Client connected: Client2 from ('127.0.0.1', 65293)
+2025-04-10 22:20:48,163 - secure_client - INFO - System message received: [SYSTEM] Client1 has joined th...
+2025-04-10 22:20:48,164 - secure_client - INFO - Online users list updated: 1 users
+2025-04-10 22:20:48,164 - secure_client - INFO - Online users list updated: 1 users
+2025-04-10 22:20:48,176 - secure_server - INFO - Broadcasting message from Client1: hello client 2
+2025-04-10 22:20:48,176 - secure_server - INFO - Message delivery: 1/1 recipients (100.0%)
+2025-04-10 22:20:48,192 - secure_client - INFO - System message received: [SYSTEM] Client2 has joined th...
+2025-04-10 22:20:48,193 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:20:55,985 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:21:09,553 - secure_client - INFO - System message received: [SYSTEM] Client2 has joined th...
+2025-04-10 22:21:09,553 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:21:09,565 - secure_server - INFO - Broadcasting message from Client2: hi client 1
+2025-04-10 22:21:09,565 - secure_server - INFO - Message delivery: 1/1 recipients (100.0%)
+2025-04-10 22:21:09,575 - secure_client - INFO - Message received from Client1
+2025-04-10 22:21:09,575 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:21:25,986 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:21:55,988 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:22:25,931 - secure_server - INFO - Broadcasting message from Client2: hii
+2025-04-10 22:22:25,931 - secure_server - INFO - Message delivery: 1/1 recipients (100.0%)
+2025-04-10 22:22:25,991 - secure_client - INFO - Online users list updated: 2 users
+2025-04-10 22:22:55,991 - secure_client - INFO - Online users list updated: 2 users

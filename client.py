@@ -49,9 +49,19 @@ def message_callback(message):
         
     elif msg_type == "online_users":
         # Update online users list
-        online_users = message.get("users", [])
+        users_data = message.get("users", [])
+        
+        # Handle both string usernames and dictionary user objects
+        if users_data and isinstance(users_data[0], dict):
+            # Extract usernames from dictionary objects
+            online_users = [user.get("username", "Unknown") for user in users_data]
+        else:
+            # Already a list of usernames
+            online_users = users_data
+            
         # Show notification with user count
         ui.print_colored(f"\n[i] Online users updated: {len(online_users)} user(s) connected", Colors.BLUE)
+        
         # Display the list of users
         if online_users:
             user_list = ", ".join(online_users)
