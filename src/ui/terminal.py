@@ -29,6 +29,8 @@ class TerminalUI:
         self.cursor_position = 0
         self.input_lock = threading.Lock()
         self.supports_ansi = self._check_ansi_support()
+        self.terminal_width = self._get_terminal_width()
+        self.unread_count = 0
     
     def _check_ansi_support(self):
         """Check if terminal supports ANSI escape codes"""
@@ -43,6 +45,13 @@ class TerminalUI:
                 return False
         else:
             return True
+    
+    def _get_terminal_width(self):
+        """Get terminal width or default to 80"""
+        try:
+            return os.get_terminal_size().columns
+        except:
+            return 80
     
     def clear_screen(self):
         """Clear the terminal screen"""
@@ -62,14 +71,31 @@ class TerminalUI:
     def show_banner(self, host, port, use_tor):
         """Display welcome banner"""
         self.clear_screen()
-        self.print_colored("╔══════════════════════════════════════════╗", Colors.CYAN)
-        self.print_colored("║            SECURE CHATROOM                ║", Colors.CYAN)
-        self.print_colored("╚══════════════════════════════════════════╝", Colors.CYAN)
-        self.print_colored(f"Connected as: {Colors.GREEN}{self.username}{Colors.RESET}")
-        self.print_colored(f"Server: {Colors.YELLOW}{host}:{port}{Colors.RESET}")
-        self.print_colored(f"TOR Enabled: {Colors.PURPLE if use_tor else Colors.GRAY}{use_tor}{Colors.RESET}")
-        self.print_colored(f"Type {Colors.YELLOW}/help{Colors.RESET} for available commands")
-        self.print_colored("─" * 50, Colors.GRAY)
+        
+        # Get terminal width for centered banner
+        width = self.terminal_width
+        
+        # Create fancy banner with box drawing characters
+        banner_text = "SECURE CHATROOM"
+        padding = max(2, (width - len(banner_text) - 4) // 2)
+        
+        # Top border with rounded corners
+        self.print_colored("╭" + "─" * (padding * 2 + len(banner_text)) + "╮", Colors.CYAN)
+        
+        # Title with padding
+        self.print_colored("│" + " " * padding + f"{Colors.BOLD}{Colors.CYAN}{banner_text}{Colors.RESET}" + " " * padding + "│", Colors.CYAN)
+        
+        # Bottom border with rounded corners
+        self.print_colored("╰" + "─" * (padding * 2 + len(banner_text)) + "╯", Colors.CYAN)
+        
+        # Connection info
+        self.print_colored(f"● Connected as: {Colors.GREEN}{self.username}{Colors.RESET}", Colors.RESET)
+        self.print_colored(f"● Server: {Colors.YELLOW}{host}:{port}{Colors.RESET}", Colors.RESET)
+        self.print_colored(f"● TOR Enabled: {Colors.PURPLE if use_tor else Colors.GRAY}{use_tor}{Colors.RESET}", Colors.RESET)
+        self.print_colored(f"● Type {Colors.YELLOW}/help{Colors.RESET} for available commands", Colors.RESET)
+        
+        # Separator
+        self.print_colored("─" * width, Colors.GRAY)
     
     def add_message(self, text, msg_type="other"):
         """Add message to history"""
@@ -123,11 +149,26 @@ class TerminalUI:
             
             # Clear screen and show messages
             self.clear_screen()
-            self.print_colored("╔══════════════════════════════════════════╗", Colors.CYAN)
-            self.print_colored("║            SECURE CHATROOM                ║", Colors.CYAN)
-            self.print_colored("╚══════════════════════════════════════════╝", Colors.CYAN)
-            self.print_colored(f"Connected as: {Colors.GREEN}{self.username}{Colors.RESET}")
-            self.print_colored("─" * 50, Colors.GRAY)
+            
+            # Get terminal width for centered banner
+            width = self.terminal_width
+            
+            # Create fancy banner with box drawing characters
+            banner_text = "SECURE CHATROOM"
+            padding = max(2, (width - len(banner_text) - 4) // 2)
+            
+            # Top border with rounded corners
+            self.print_colored("╭" + "─" * (padding * 2 + len(banner_text)) + "╮", Colors.CYAN)
+            
+            # Title with padding
+            self.print_colored("│" + " " * padding + f"{Colors.BOLD}{Colors.CYAN}{banner_text}{Colors.RESET}" + " " * padding + "│", Colors.CYAN)
+            
+            # Bottom border with rounded corners
+            self.print_colored("╰" + "─" * (padding * 2 + len(banner_text)) + "╯", Colors.CYAN)
+            
+            # Connection info
+            self.print_colored(f"● Connected as: {Colors.GREEN}{self.username}{Colors.RESET}", Colors.RESET)
+            self.print_colored("─" * width, Colors.GRAY)
             
             # Show last messages
             display_count = min(15, len(self.message_history))

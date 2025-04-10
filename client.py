@@ -154,11 +154,17 @@ def main():
             
             if success:
                 # Show message in your own terminal with "You:" prefix
-                ui.add_message(f"You: {user_input}", "self")
+                # Don't add "You:" if it's already there
+                if user_input.startswith("You: "):
+                    display_text = user_input
+                else:
+                    display_text = f"You: {user_input}"
+                
+                ui.add_message(display_text, "self")
                 
                 # Log message if enabled
                 if secure_logger.enabled:
-                    secure_logger.log_message(f"You: {user_input}")
+                    secure_logger.log_message(display_text)
             else:
                 # Show error message
                 ui.print_colored(f"\n[!] {error_msg}", Colors.RED)
