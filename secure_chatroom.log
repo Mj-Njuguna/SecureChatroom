@@ -69,3 +69,9 @@
 2025-04-10 22:27:59,018 - secure_server - INFO - Client disconnected: Client2
 2025-04-10 22:46:27,006 - secure_server - ERROR - Error handling client ('127.0.0.1', 50955): [WinError 10054] An existing connection was forcibly closed by the remote host
 2025-04-10 22:46:27,835 - secure_server - ERROR - Error handling client ('127.0.0.1', 50975): [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-04-10 22:54:27,852 - secure_server - ERROR - Error handling client ('127.0.0.1', 51586): [WinError 10054] An existing connection was forcibly closed by the remote host
+2025-04-10 23:00:02,385 - secure_client - ERROR - Connection failed: [WinError 10061] No connection could be made because the target machine actively refused it
+2025-04-10 23:00:58,904 - secure_client - ERROR - Error in message callback: 'NoneType' object has no attribute 'add_message'
+2025-04-10 23:00:58,905 - secure_client - ERROR - Error in message callback: 'NoneType' object has no attribute 'add_message'
+2025-04-10 23:01:40,943 - secure_client - ERROR - Error in message callback: 'NoneType' object has no attribute 'add_message'
+2025-04-10 23:01:40,943 - secure_client - ERROR - Error in message callback: 'NoneType' object has no attribute 'add_message'

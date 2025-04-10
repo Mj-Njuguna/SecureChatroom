@@ -172,44 +172,142 @@ class TerminalUI:
             
             # Show last messages
             display_count = min(15, len(self.message_history))
-            for msg in self.message_history[-display_count:]:
-                if msg["expired"]:
-                    self.print_colored(f"[Message Expired] {msg['text'][:20]}...", Colors.GRAY)
-                else:
-                    prefix = f"[{msg['time']}] "
-                    if msg["type"] == "system":
-                        self.print_colored(f"{prefix}{msg['text']}", Colors.YELLOW)
-                    elif msg["type"] == "self":
-                        # Your own messages are already formatted with "You: " in client.py
-                        self.print_colored(f"{prefix}{msg['text']}", Colors.GREEN)
-                    elif msg["type"] == "other":
-                        # Messages from others should be in cyan
-                        self.print_colored(f"{prefix}{msg['text']}", Colors.CYAN)
+            if len(self.message_history) > 0:
+                for msg in self.message_history[-display_count:]:
+                    if msg["expired"]:
+                        self.print_colored(f"  {Colors.GRAY}[Message Expired] {msg['text'][:20]}...{Colors.RESET}", Colors.GRAY)
                     else:
-                        # Fallback for any other message type
-                        self.print_colored(f"{prefix}{msg['text']}", Colors.RESET)
+                        prefix = f"[{msg['time']}] "
+                        
+                        if msg["type"] == "system":
+                            # System messages with special formatting
+                            self.print_colored(f"  {Colors.YELLOW}╭─ SYSTEM ───────────────────╮{Colors.RESET}", Colors.YELLOW)
+                            self.print_colored(f"  {Colors.YELLOW}│ {msg['text']}{Colors.RESET}", Colors.YELLOW)
+                            self.print_colored(f"  {Colors.YELLOW}╰───────────────────────────╯{Colors.RESET}", Colors.YELLOW)
+                            
+                        elif msg["type"] == "self":
+                            # Your own messages in a right-aligned bubble
+                            text = msg['text']
+                            max_len = min(self.terminal_width - 25, 50)
+                            
+                            if len(text) > max_len:
+                                # Split long messages
+                                chunks = [text[i:i+max_len] for i in range(0, len(text), max_len)]
+                                
+                                # First line with timestamp
+                                padding = self.terminal_width - len(chunks[0]) - len(prefix) - 10
+                                self.print_colored(" " * max(0, padding) + f"{Colors.GREEN}╭─ You ─{Colors.RESET}", Colors.GREEN)
+                                self.print_colored(" " * max(0, padding) + f"{Colors.GREEN}│{Colors.RESET} {prefix}{chunks[0]}", Colors.GREEN)
+                                
+                                # Middle lines
+                                for chunk in chunks[1:-1]:
+                                    padding = self.terminal_width - len(chunk) - 10
+                                    self.print_colored(" " * max(0, padding) + f"{Colors.GREEN}│{Colors.RESET} {chunk}", Colors.GREEN)
+                                
+                                # Last line
+                                padding = self.terminal_width - len(chunks[-1]) - 10
+                                self.print_colored(" " * max(0, padding) + f"{Colors.GREEN}│{Colors.RESET} {chunks[-1]}", Colors.GREEN)
+                                self.print_colored(" " * max(0, padding) + f"{Colors.GREEN}╰───────{Colors.RESET}", Colors.GREEN)
+                            else:
+                                # Short message
+                                padding = self.terminal_width - len(text) - len(prefix) - 10
+                                self.print_colored(" " * max(0, padding) + f"{Colors.GREEN}╭─ You ─{Colors.RESET}", Colors.GREEN)
+                                self.print_colored(" " * max(0, padding) + f"{Colors.GREEN}│{Colors.RESET} {prefix}{text}", Colors.GREEN)
+                                self.print_colored(" " * max(0, padding) + f"{Colors.GREEN}╰───────{Colors.RESET}", Colors.GREEN)
+                                
+                        elif msg["type"] == "other":
+                            # Messages from others in a left-aligned bubble
+                            text = msg['text']
+                            sender = text.split(':', 1)[0] if ': ' in text else "Other"
+                            content = text.split(':', 1)[1].strip() if ': ' in text else text
+                            max_len = min(self.terminal_width - 25, 50)
+                            
+                            if len(content) > max_len:
+                                # Split long messages
+                                chunks = [content[i:i+max_len] for i in range(0, len(content), max_len)]
+                                
+                                # First line with timestamp and sender
+                                self.print_colored(f"  {Colors.CYAN}╭─ {sender} ─{Colors.RESET}", Colors.CYAN)
+                                self.print_colored(f"  {Colors.CYAN}│{Colors.RESET} {prefix}{chunks[0]}", Colors.CYAN)
+                                
+                                # Middle lines
+                                for chunk in chunks[1:-1]:
+                                    self.print_colored(f"  {Colors.CYAN}│{Colors.RESET} {chunk}", Colors.CYAN)
+                                
+                                # Last line
+                                self.print_colored(f"  {Colors.CYAN}│{Colors.RESET} {chunks[-1]}", Colors.CYAN)
+                                self.print_colored(f"  {Colors.CYAN}╰───────{Colors.RESET}", Colors.CYAN)
+                            else:
+                                # Short message
+                                self.print_colored(f"  {Colors.CYAN}╭─ {sender} ─{Colors.RESET}", Colors.CYAN)
+                                self.print_colored(f"  {Colors.CYAN}│{Colors.RESET} {prefix}{content}", Colors.CYAN)
+                                self.print_colored(f"  {Colors.CYAN}╰───────{Colors.RESET}", Colors.CYAN)
+                        else:
+                            # Fallback for any other message type
+                            self.print_colored(f"  {prefix}{msg['text']}", Colors.RESET)
+            else:
+                # No messages yet
+                self.print_colored("\n  No messages yet. Start chatting!", Colors.GRAY)
+                
+            # Draw input area with a box
+            input_box_width = self.terminal_width - 4
+            self.print_colored("\n" + "─" * self.terminal_width, Colors.GRAY)
+            self.print_colored(f"{Colors.GREEN}╭─ Your Message " + "─" * (input_box_width - 15) + "╮", Colors.GREEN)
+            self.print_colored(f"{Colors.GREEN}│{Colors.RESET} {current_input}" + " " * (input_box_width - len(current_input) - 1) + f"{Colors.GREEN}│", Colors.GREEN)
+            self.print_colored(f"{Colors.GREEN}╰" + "─" * (input_box_width) + "╯", Colors.GREEN)
             
-            # Restore input prompt
-            self.print_colored("\nYou: ", Colors.GREEN, end="")
-            self.print_colored(current_input, end="")
+            # Position cursor in the input box
+            sys.stdout.write(f"\033[2A\033[3C{current_input}")
+            sys.stdout.flush()
     
     def show_help(self):
         """Display help information"""
+        width = self.terminal_width
+        
+        # Header
+        self.print_colored("\n" + "─" * width, Colors.GRAY)
+        self.print_colored(f"{Colors.YELLOW}╭─ HELP ─" + "─" * (width - 9) + "╮{Colors.RESET}", Colors.YELLOW)
+        
+        # Commands section
         commands = [
             ("/help", "Show this help message"),
             ("/quit", "Disconnect and exit"),
             ("/clear", "Clear the screen"),
             ("/whoami", "Show your current username"),
-            ("/log on", "Enable local encrypted logging"),
-            ("/log off", "Disable local encrypted logging"),
-            ("/history", "Show message history"),
+            ("/log on", "Enable secure message logging"),
+            ("/log off", "Disable secure message logging"),
+            ("/history", "View message history (if logging enabled)"),
             ("/users", "Show online users")
         ]
         
-        self.print_colored("\n─── Available Commands ───", Colors.CYAN)
+        # Display commands in a nice format
+        self.print_colored(f"{Colors.YELLOW}│{Colors.RESET} {Colors.BOLD}Available Commands:{Colors.RESET}", Colors.YELLOW)
+        self.print_colored(f"{Colors.YELLOW}│{Colors.RESET}", Colors.YELLOW)
+        
         for cmd, desc in commands:
-            self.print_colored(f"{Colors.YELLOW}{cmd:<12}{Colors.RESET} - {desc}")
-        self.print_colored("─" * 30, Colors.GRAY)
+            padding = width - len(cmd) - len(desc) - 10
+            self.print_colored(f"{Colors.YELLOW}│{Colors.RESET}   {Colors.CYAN}{cmd}{Colors.RESET} {Colors.GRAY}·{Colors.RESET}" + " " * padding + f"{Colors.RESET}{desc}", Colors.YELLOW)
+        
+        # Security features section
+        self.print_colored(f"{Colors.YELLOW}│{Colors.RESET}", Colors.YELLOW)
+        self.print_colored(f"{Colors.YELLOW}│{Colors.RESET} {Colors.BOLD}Security Features:{Colors.RESET}", Colors.YELLOW)
+        self.print_colored(f"{Colors.YELLOW}│{Colors.RESET}", Colors.YELLOW)
+        
+        features = [
+            ("End-to-End Encryption", "All messages are encrypted with AES-GCM"),
+            ("Anonymous Usernames", "Your identity is protected"),
+            ("Self-Destructing Messages", "Messages expire after 10 seconds"),
+            ("Secure Logging", "Optional encrypted message logging"),
+            ("TOR Integration", "Optional routing through TOR network")
+        ]
+        
+        for feature, desc in features:
+            padding = width - len(feature) - len(desc) - 10
+            self.print_colored(f"{Colors.YELLOW}│{Colors.RESET}   {Colors.GREEN}{feature}{Colors.RESET} {Colors.GRAY}·{Colors.RESET}" + " " * max(1, padding) + f"{Colors.RESET}{desc}", Colors.YELLOW)
+        
+        # Footer
+        self.print_colored(f"{Colors.YELLOW}╰" + "─" * (width - 2) + "╯{Colors.RESET}", Colors.YELLOW)
+        self.print_colored("─" * width, Colors.GRAY)
     
     def show_online_users(self, users):
         """Display list of online users"""

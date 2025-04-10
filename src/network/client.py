@@ -178,37 +178,9 @@ class SecureClient:
     
     def send_message(self, content):
         """Send encrypted message to server"""
-        if not self.connected:
-            raise ConnectionError("Not connected to server")
-            
-        # Check if there are other users online
-        from ..ui.terminal import Colors
+        if not self.connected or not self.socket:
+            return False, "Not connected to server"
         
-        # Get the current online users count from the message queue
-        other_users_online = False
-        online_users_count = 0
-        online_users = []
-        
-        # Check recent messages for online users updates
-        for i in range(min(10, self.message_queue.qsize())):
-            try:
-                # Get message without removing it
-                message = self.message_queue.queue[i]
-                if message.get("type") == "online_users":
-                    users = message.get("users", [])
-                    # If we're the only user, don't allow sending
-                    if len(users) > 1:
-                        other_users_online = True
-                        online_users_count = len(users)
-                        online_users = users
-                    break
-            except:
-                pass
-                
-        if not other_users_online:
-            self.logger.warning("No other users online. Message not sent.")
-            return False, "No other users are online to receive your message."
-            
         try:
             # Create message packet
             message = Protocol.create_message(content)
